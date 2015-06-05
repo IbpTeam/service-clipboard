@@ -1,0 +1,10 @@
+{
+  "author": "zk",
+  "name": "clipboard",
+  "version": "0.1.0",
+  "description": "copy/paste service of webde",
+  "main": "index.js",
+  "dependencies": {
+    "webde-rpc": "~0.1.0"
+  }
+}
