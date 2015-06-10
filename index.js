@@ -1,3 +1,3 @@
 var clipboard = require("./implements/cpservice");
-	stub = require("./interface/clipboardStub").getStub(clipboard);
+var stub = require("./interface/clipboardStub").getStub(proxyAddr,clipboard);
 clipboard.setStub(stub);

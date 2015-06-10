@@ -3,8 +3,11 @@
   "name": "clipboard",
   "version": "0.1.0",
   "description": "copy/paste service of webde",
+  "keywords":["copy", "paste", "copy and paste", "clipboard","cross-device"],
   "main": "index.js",
   "dependencies": {
-    "webde-rpc": "~0.1.0"
+    "webde-rpc": "~0.1.0",
+    "commdaemon": "~0.1.0",
+    "node-copy-paste": "~1.1.0"
   }
 }

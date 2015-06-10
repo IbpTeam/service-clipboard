@@ -1,10 +1,10 @@
-var copypaste = require("../node_modules/node-copy-paste"),
+var copypaste = require("node-copy-paste"),
     fs = require("fs"),
     os = require("os");
 
 
 //init the clipstack of a device based on device-discovery service
-function initService(){}
+function initClipStack(){}
 
 var clipContent =undefined;
 
