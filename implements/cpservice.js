@@ -1,10 +1,13 @@
 var copypaste = require("node-copy-paste"),
     fs = require("fs"),
-    os = require("os");
+    os = require("os"),
+    remoteProxy = require("../interface/clipboardProxyRemote");
 
 
 //init the clipstack of a device based on device-discovery service
-function initClipStack(){}
+function initClipStack(){
+
+}
 
 var clipContent =undefined;
 
@@ -28,6 +31,7 @@ function getClipboardData(){
 //otherwise return false.
 function isClipboardUpdated(string,clipContent,callback){
 	var _string = string;
+	getClipboardData();
 	var _clipContent = clipContent;
 	if (_string === _clipContent){
 		console.log("clipboard's content is not changed.");
@@ -65,12 +69,8 @@ function updateClipStack(msg,clipstack,callback){
 			if(i == _clipstack.length-1) 
 				break;
 			else {
-				var tmp = undefined;
-				tmp = _clipstack[i];
-				for(var j = i;j < _clipstack.length-1;j++){
-					_clipstack[j] = _clipstack[j+1];
-				}
-				_clipstack[_clipstack.length-1] = tmp;
+				_clipstack.splice(i,1);
+				_clipstack.push(_ip);
 				break;
 			}
 		}else _count++;
@@ -119,6 +119,8 @@ exports.setStub = function(stub_) {
     	return result;
     }else{
     	//remotePaste procedue
+    	var _remoteProxy = remoteProxy.getProxy(_ip);
+    	_remoteProxy.paste();
     }
 	// return clipContent;	
 };

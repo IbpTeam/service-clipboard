@@ -11,7 +11,7 @@ function Proxy(ip) {
   }
 
   // TODO: replace $cdProxy to the real path
-  this._cd = require('../../commdaemon/interface/commdaemonProxy.js').getProxy();  this._token = 0;
+  this._cd = require('../node_modules/commdaemon/interface/commdaemonProxy').getProxy();  this._token = 0;
 
 }
 
