@@ -84,7 +84,7 @@ function isClipboardUpdated(string,clipContent,callback){
 		//inform other device in the AdHoc that the content of system clipboard has been updated
 		for (var i = 0; i < clipstack.length; i++) {
 			var _ip = clipstack[i];
-			if(_ip == msg.ip) break;
+			if(_ip == msg.ip) continue;
 			else{
 				var obj = remoteProxy.getRemoteObj('clipboard', _ip);
 				obj.sendmsg(msg,function(res){
