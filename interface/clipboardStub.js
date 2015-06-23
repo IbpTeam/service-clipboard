@@ -32,10 +32,11 @@ var initObj = {
     },
     paste: function(callback) {
       clipboard.paste(function(err,ret){
+        console.log(arguments);
         if(err) {
           return callback({err:err});
         }
-        callback({ret:string});
+        callback({ret:ret});
       });
     }
   }
@@ -52,7 +53,7 @@ Stub.prototype.notify = function(event) {
 
 var stub = null,
     cd = null,
-    proxyAddr = "./clipboardPrxy.js";
+    proxyAddr = null;
 exports.getStub = function(proxyAddr,clipboard_) {
   if(stub == null) {
     if(typeof proxyAddr === 'undefined')

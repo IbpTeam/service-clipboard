@@ -1,13 +1,12 @@
 var copypaste = require("node-copy-paste"),
-    fs = require("fs"),
     os = require("os"),
-    device = require("../../../app/demo-rio/nodewebkit/lib/api/device_service.js"),
+    // device = require("../../../app/demo-rio/nodewebkit/lib/api/device_service.js"),
     im = require("../../../framework/api/lib/im.js"),
     remoteProxy = require("../interface/clipboardProxyRemote");
 
 
-var clipContent =undefined,
-		clipstack = undefined;
+// var clipContent =undefined,
+	var clipstack = undefined;
 
 
 //init the clipstack of a device based on device-discovery service
@@ -15,48 +14,48 @@ function maintainClipStack(){
 	//init clipstack...
 	if(clipstack === undefined){
 		clipstack = [];
-		device.showDeviceList(function(ddd){
-			console.log("Init clipstack...");
-			for (dev in ddd ) {
-				clipstack.push(ddd[dev].address);
-			}
-		});
+		clipstack.push(os.networkInterfaces().eth0[0].address);
+		// device.showDeviceList(function(ddd){
+		// 	console.log("Init clipstack...");
+		// 	for (dev in ddd ) {
+		// 		clipstack.push(ddd[dev].address);
+		// 	}
+		// });
 	}
 
 	//update the clipstack when there is a device online or offline.
-	device.addListener(function(_para){
-		if(_para !== 'object') return console.log(_para);
-		var _info = _para.info,
-				_dev_ip = _info.address; 
-		switch(_para.flag){
-			case 'up':
-				if(_dev_ip in clipstack) 
-					break;
-				else clipstack.unshift(_dev_ip);
-				break;
-			case 'down':
-				var id = clipstack.indexOf(_dev_ip);
-				if(id == -1)
-					throw new Error("Warn: this device is not in the clipstack.");
-				else
-					clipstack.splice(id,1);
-				break;
-			default :
-		  	break;
-		}
-	});
+	// device.addListener(function(_para){
+	// 	if(_para !== 'object') return console.log(_para);
+	// 	var _info = _para.info,
+	// 			_dev_ip = _info.address; 
+	// 	switch(_para.flag){
+	// 		case 'up':
+	// 			if(_dev_ip in clipstack) 
+	// 				break;
+	// 			else clipstack.unshift(_dev_ip);
+	// 			break;
+	// 		case 'down':
+	// 			var id = clipstack.indexOf(_dev_ip);
+	// 			if(id == -1)
+	// 				throw new Error("Warn: this device is not in the clipstack.");
+	// 			else
+	// 				clipstack.splice(id,1);
+	// 			break;
+	// 		default :
+	// 	  	break;
+	// 	}
+	// });
 }
 
 //this function's fearure is to get the current 
 //content of local system's clipboard
-function getClipboardData(){
+function getClipboardData(cb_){
 	copypaste.paste(function(err,ret){
 		if(err === null){
-			clipContent = ret;
-			console.log("content of clipboard: " + clipContent);
-			return clipContent;
+			var clipContent = ret;
+			cb_(clipContent);
 		}else{
-			throw err;
+			cb_(null);
 		}
 	});
 }
@@ -67,38 +66,49 @@ function getClipboardData(){
 *  otherwise return false.
 *  
 */
-function isClipboardUpdated(string,clipContent,callback){
-	var _string = string;
-	getClipboardData();
-	var _clipContent = clipContent;
-	if (_string === _clipContent){
-		console.log("clipboard's content is not changed.");
-		return false;
-	}else{
-		//broadcast clipboard updated mesage to device in the AdHoc.
-		var msg = {};
-		msg.ip = os.networkInterfaces().eth0[0].address;
-		console.log("local ip is: " + msg.ip);
-		msg.txt = "content of "+ msg.ip +"'s clipboard is updated!";
-
-		//inform other device in the AdHoc that the content of system clipboard has been updated
-		for (var i = 0; i < clipstack.length; i++) {
-			var _ip = clipstack[i];
-			if(_ip == msg.ip) continue;
-			else{
-				var obj = remoteProxy.getRemoteObj('clipboard', _ip);
-				obj.sendmsg(msg,function(res){
-  				console.log(res);
-  				if (res.err) {
-    				console.log(res.err);
-  				}
-				});
-			}
-		};
-		return msg;
-	}
+function isClipboardUpdated(string,callback){
+	var flag = undefined;
+	console.log("data to be copied: " + string);
+	getClipboardData(function(_clipContent){
+		console.log("_clipContent: " + _clipContent);
+		if (string === _clipContent){
+			console.log("clipboard's content is not changed.");
+			if(ip != getClipData)
+				broadcast();
+			flag = false;
+			callback(flag);
+		}else{
+			//broadcast clipboard updated mesage to device in the AdHoc.
+			broadcast();
+			flag = true;
+			callback(flag);
+		}
+	});	
 }
 
+/* @method broadcast()
+*	 to broadcast clipboard update message to device in the AdHoc
+*/
+function broadcast(){
+	var msg = {};
+	msg.ip = os.networkInterfaces().eth0[0].address;
+	msg.txt = "content of "+ msg.ip +"'s clipboard is updated!";
+	//inform other device in the AdHoc that the content of system clipboard has been updated
+	for (var i = 0; i < clipstack.length; i++) {
+		console.log("now,in for-loop....");
+		var _ip = clipstack[i];
+		if(_ip == msg.ip) {
+			updateClipStack(msg,clipstack);
+			continue;
+		}
+		else{
+			var intent = im.Intent("cpIntent",msg);
+			intent.send("cpReciver",_ip);
+			console.log("message is sent...");
+		}
+	};
+	console.log("msg: " + JSON.stringify(msg));
+}
 
 /* para @msg:Object,
 *      {ip: string,
@@ -136,11 +146,12 @@ function updateClipStack(msg,clipstack,callback){
 }
 
 
+
 //function to get the top element of the clipstack
 
-function getClipData(clipstack){
-	var _clipstack = clipstack;
-	return _clipstack.pop();
+function getClipData(){
+	// var _clipstack = clipstack;
+	return clipstack.pop();
 }
 
 
@@ -154,11 +165,19 @@ exports.setStub = function(stub_) {
 //para @string: data to be copied
 //para @callback: callback to handle some info
 //
- exports.copy = function(string,callback){
-	var arg = string;
-	if(!!isClipboardUpdated(arg,clipContent,function(){}))
-		copypaste.copy(arg);
-
+ exports.copy = function(string,callback){ 
+ 	console.log("test test test...");
+	isClipboardUpdated(string,function(flag){
+		if(flag == true){
+			console.log("--------call node-copy-paste's copy()------");
+			console.log("string::: " + string);
+			copypaste.copy(string);
+			// console.log("--------do copy succeedly--------");
+			callback(null);
+		}else{
+			callback("copy failed...");
+		}
+	});
 };
 
 //interface for app to execute 'paste'
@@ -167,15 +186,32 @@ exports.setStub = function(stub_) {
 	//then handle the paste request according
 	//to the situation.
     var _ip = getClipData();
+    // console.log("_ip: " + _ip);
     var _localIp = os.networkInterfaces().eth0[0].address;
     if(_ip == _localIp){
-    	var result = getClipboardData();
-    	return result;
+    	getClipboardData(function(ret){
+    		console.log("--------local paste test--------");
+    		console.log("ret :::" + ret);
+    		if(ret === null) ret = "";
+    		callback(null,ret);
+    	});
     }else{
     	//remotePaste procedue
     	var _remoteProxy = remoteProxy.getProxy(_ip);
-    	var res = _remoteProxy.paste();
-    	return res;
-    }
-	// return clipContent;	
+    	_remoteProxy.paste(function(result){
+    		console.log("--------remote paste test--------");
+    		if(result === null) result = "";
+    		console.log("result: " + result);
+    		callback(null,result);
+    	}); 	
+    }	
 };
+
+(function main(){
+	maintainClipStack();
+	im.startReciver("cpReciver",function(content){
+		console.log(content);
+		var _msg = content;
+		updateClipStack(_msg,clipstack);
+	});
+})();
