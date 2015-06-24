@@ -55,7 +55,7 @@ function getClipboardData(cb_) {
       var clipContent = ret;
       cb_(clipContent);
     } else {
-      cb_(null);
+      cb_(err);
     }
   });
 }
@@ -96,7 +96,6 @@ function broadcast() {
   msg.txt = "content of " + msg.ip + "'s clipboard is updated!";
   //inform other device in the AdHoc that the content of system clipboard has been updated
   for (var i = 0; i < clipstack.length; i++) {
-    console.log("now,in for-loop....");
     var _ip = clipstack[i];
     if (_ip == msg.ip) {
       updateClipStack(msg, clipstack);
