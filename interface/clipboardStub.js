@@ -9,34 +9,37 @@ var initObj = {
   "name": "nodejs.webde.clipboard",
   "type": "dbus",
   "service": true,
-  "interface": [
-    {
-      "name": "copy",
-      "in": [
-        "String"
-      ]
-    },
-    {
-      "name": "paste",
-      "in": []
-    }
-  ],
+  "interface": [{
+    "name": "copy",
+    "in": [
+      "String"
+    ]
+  }, {
+    "name": "paste",
+    "in": []
+  }],
   "serviceObj": {
     copy: function(String, callback) {
-      clipboard.copy(String,function(err) {
-        if(err) {
-          return callback({err: err});
+      clipboard.copy(String, function(err) {
+        if (err) {
+          return callback({
+            err: err
+          });
         }
         callback({});
       });
     },
     paste: function(callback) {
-      clipboard.paste(function(err,ret){
+      clipboard.paste(function(err, ret) {
         console.log(arguments);
-        if(err) {
-          return callback({err:err});
+        if (err) {
+          return callback({
+            err: err
+          });
         }
-        callback({ret:ret});
+        callback({
+          ret: ret
+        });
       });
     }
   }
@@ -52,18 +55,17 @@ Stub.prototype.notify = function(event) {
 };
 
 var stub = null,
-    cd = null,
-    proxyAddr = null;
-exports.getStub = function(proxyAddr,clipboard_) {
-  if(stub == null) {
-    if(typeof proxyAddr === 'undefined')
+  cd = null,
+  proxyAddr = null;
+exports.getStub = function(proxyAddr, clipboard_) {
+  if (stub == null) {
+    if (typeof proxyAddr === 'undefined')
       throw 'The path of proxy\'s module file we need!';
     // TODO: replace $cdProxy to the path of commdaemonProxy
     cd = require('../node_modules/commdaemon/interface/commdaemonProxy').getProxy();
     cd.register(initObj.name, proxyAddr, function(ret) {
-      if(ret.err) {
-        return console.log(ret.err
-          , 'This service cannot be accessed from other devices since failed to register on CD');
+      if (ret.err) {
+        return console.log(ret.err, 'This service cannot be accessed from other devices since failed to register on CD');
       }
     });
     stub = new Stub();

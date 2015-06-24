@@ -48,11 +48,11 @@ function Proxy() {
  */
 Proxy.prototype.copy = function(String, callback) {
   var l = arguments.length,
-      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+    args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
   this._ipc.invoke({
     token: this._token++,
     name: 'copy',
-    in: args,
+    in : args,
     callback: callback
   });
 };
@@ -67,11 +67,11 @@ Proxy.prototype.copy = function(String, callback) {
  */
 Proxy.prototype.paste = function(callback) {
   var l = arguments.length,
-      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+    args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
   this._ipc.invoke({
     token: this._token++,
     name: 'paste',
-    in: args,
+    in : args,
     callback: callback
   });
 };
@@ -112,7 +112,7 @@ Proxy.prototype.off = function(event, handler) {
 
 var proxy = null;
 exports.getProxy = function() {
-  if(proxy == null) {
+  if (proxy == null) {
     proxy = new Proxy();
   }
   return proxy;
