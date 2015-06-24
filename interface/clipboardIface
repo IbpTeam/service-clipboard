@@ -1,0 +1,14 @@
+{
+  "remote": "true",
+  "service": "clipboard",
+  "interfaces": [
+    {
+      "name": "copy",
+      "in": ["String"]
+    },
+    {
+      "name": "paste",
+      "in": []
+    }
+  ]
+}
