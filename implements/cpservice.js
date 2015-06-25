@@ -1,12 +1,16 @@
-var copypaste = require("node-copy-paste"),
+var copypaste = require("copy-paste"),
   os = require("os"),
   // device = require("../../../app/demo-rio/nodewebkit/lib/api/device_service.js"),
-  im = require("../../../framework/api/lib/im.js"),
+  api = require('api'),
+  im = api.im(),
   remoteProxy = require("../interface/clipboardProxyRemote");
 
 
 // var clipContent =undefined,
-var clipstack = undefined;
+var clipstack = undefined,
+    netIface = os.networkInterfaces(),
+    eth = netIface.eth0 || netIface.eth1,
+    localIp = eth[0].address;
 
 
 //init the clipstack of a device based on device-discovery service
@@ -14,7 +18,7 @@ function maintainClipStack() {
   //init clipstack...
   if (clipstack === undefined) {
     clipstack = [];
-    clipstack.push(os.networkInterfaces().eth0[0].address);
+    clipstack.push(localIp);
     // device.showDeviceList(function(ddd){
     //  console.log("Init clipstack...");
     //  for (dev in ddd ) {
@@ -73,7 +77,6 @@ function isClipboardUpdated(string, callback) {
     console.log("_clipContent: " + _clipContent);
     if (string === _clipContent) {
       console.log("clipboard's content is not changed.");
-      var localIp = os.networkInterfaces().eth0[0].address;
       if (localIp != getClipData)
         broadcast();
       flag = false;
@@ -92,7 +95,7 @@ function isClipboardUpdated(string, callback) {
  */
 function broadcast() {
   var msg = {};
-  msg.ip = os.networkInterfaces().eth0[0].address;
+  msg.ip = localIp;
   msg.txt = "content of " + msg.ip + "'s clipboard is updated!";
   //inform other device in the AdHoc that the content of system clipboard has been updated
   for (var i = 0; i < clipstack.length; i++) {
@@ -149,7 +152,7 @@ function updateClipStack(msg, clipstack, callback) {
 //function to get the top element of the clipstack
 
 function getClipData() {
-  return clipstack.pop();
+  return clipstack[clipstack.length - 1];
 }
 
 
@@ -171,7 +174,7 @@ exports.copy = function(string, callback) {
       copypaste.copy(string);
       callback(null);
     } else {
-      callback("copy failed...");
+      callback("content of clipboard is up-to-date");
     }
   });
 };
@@ -182,7 +185,7 @@ exports.paste = function(callback) {
   //then handle the paste request according
   //to the situation.
   var _ip = getClipData();
-  var _localIp = os.networkInterfaces().eth0[0].address;
+  var _localIp = localIp;
   if (_ip == _localIp) {
     getClipboardData(function(ret) {
       console.log("--------local paste test--------");
