@@ -1,7 +1,8 @@
-var copypaste = require("node-copy-paste"),
+var copypaste = require("copy-paste"),
   os = require("os"),
   // device = require("../../../app/demo-rio/nodewebkit/lib/api/device_service.js"),
-  im = require("../../../framework/api/lib/im.js"),
+  api = require('api'),
+  im = api.im(),
   remoteProxy = require("../interface/clipboardProxyRemote");
 
 
