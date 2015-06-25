@@ -8,7 +8,9 @@ var copypaste = require("copy-paste"),
 
 // var clipContent =undefined,
 var clipstack = undefined,
-    localIp = os.networkInterfaces().eth1[0].address;
+    netIface = os.networkInterfaces(),
+    eth = netIface.eth0 || netIface.eth1,
+    localIp = eth[0].address;
 
 
 //init the clipstack of a device based on device-discovery service
@@ -75,7 +77,6 @@ function isClipboardUpdated(string, callback) {
     console.log("_clipContent: " + _clipContent);
     if (string === _clipContent) {
       console.log("clipboard's content is not changed.");
-      // var localIp = os.networkInterfaces().eth1[0].address;
       if (localIp != getClipData)
         broadcast();
       flag = false;
