@@ -2,15 +2,15 @@ var cpService = require("../../../service/clipboard/interface/clipboardProxy").g
 
 var data = "this a test of clipboard.";
 cpService.copy(data, function(ret) {
-  console.log(ret.err);
   if (!ret.err) {
     console.log("--------copy test--------");
     cpService.paste(function(ret) {
-      console.log("ret :::" + ret.ret);
+      console.log("ret :::" +  JSON.stringify(ret.ret));
+      console.log("IP: " + ret.ip);
       console.log("--------do paste succeedly--------");
     });
   } else {
     // throw err;
-    console.log("Error: " + ret.err);
+    console.log("Info: " + ret.err);
   }
 });
