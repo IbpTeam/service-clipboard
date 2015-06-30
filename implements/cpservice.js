@@ -6,10 +6,9 @@ var copypaste = require("copy-paste"),
   remoteProxy = require("../interface/clipboardProxyRemote");
 
 
-// var clipContent =undefined,
 var clipstack = undefined,
   netIface = os.networkInterfaces(),
-  eth = netIface.eth0 || networkIface.eth1,
+  eth = netIface.eth0 || netIface.eth1,
   localIp = eth[0].address;
 
 
@@ -19,23 +18,23 @@ function maintainClipStack() {
     clipstack = [];
     clipstack.push(localIp);
   }
-
+  console.log("======This is in maintainClipStack======");
   //update the clipstack when there is a device online or offline.
   device.addListener(function(_para) {
-    console.log("-------------------------");
+    console.log("Listener has been added successfully!");
     if (_para !== 'object') return console.log(_para);
     var _info = _para.info,
       _dev_ip = _info.address;
+      id = clipstack.indexOf(_dev_ip);
     switch (_para.flag) {
       case 'up':
-        if (_dev_ip in clipstack)
+        if (id !== -1)
           break;
         else clipstack.unshift(_dev_ip);
         break;
       case 'down':
-        var id = clipstack.indexOf(_dev_ip);
         if (id == -1)
-          throw new Error("Warn: this device is not in the clipstack.");
+          throw new Error("INFO: This device is not in the clipstack.");
         else
           clipstack.splice(id, 1);
         break;
@@ -118,7 +117,7 @@ function broadcast() {
  */
 function updateClipStack(msg, clipstack, callback) {
   var _ip = msg.ip;
-  // data structure of the clip stack needed to be initial before doing the following action
+  // data structure of the clipstack needed to be initiated before doing the following action
   var _clipstack = clipstack;
   var _count = 0;
 
@@ -200,8 +199,8 @@ exports.paste = function(callback) {
       if (ret === null) {
         callback(err)
       } else {
-        console.log("remote ret: " + ret);
-        callback(null, ret, _ip);
+        console.log("remote ret: " + ret.ret);
+        callback(null, ret.ret, _ip);
       }
       
     });
@@ -209,19 +208,21 @@ exports.paste = function(callback) {
 };
 
 (function main() {
+
+  maintainClipStack();
   device.startMdnsService(function(state) {
     if (state === true) {
       console.log('start MDNS service successful!');
       //init clipstack...
       device.showDeviceList(function(ddd) {
         console.log("Init clipstack...");
+        console.log("ddd " + JSON.stringify(ddd));
         for (dev in ddd) {
           clipstack.push(ddd[dev].address);
         }
       });
     };
   });
-  maintainClipStack();
   im.startReciver("cpReciver", function(content) {
     console.log(content);
     var _msg = content;
