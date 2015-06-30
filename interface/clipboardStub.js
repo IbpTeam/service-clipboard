@@ -30,7 +30,7 @@ var initObj = {
       });
     },
     paste: function(callback) {
-      clipboard.paste(function(err, ret) {
+      clipboard.paste(function(err, ret, ip) {
         console.log(arguments);
         if (err) {
           return callback({
@@ -38,7 +38,8 @@ var initObj = {
           });
         }
         callback({
-          ret: ret
+          ret: ret,
+          ip: ip
         });
       });
     }

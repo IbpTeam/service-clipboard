@@ -1,54 +1,47 @@
 var copypaste = require("copy-paste"),
   os = require("os"),
-  // device = require("../../../app/demo-rio/nodewebkit/lib/api/device_service.js"),
-  api = require('api'),
+  api = require("api"),
   im = api.im(),
+  device = api.devDetect(),
   remoteProxy = require("../interface/clipboardProxyRemote");
 
 
-// var clipContent =undefined,
 var clipstack = undefined,
-    netIface = os.networkInterfaces(),
-    eth = netIface.eth0 || netIface.eth1,
-    localIp = eth[0].address;
+  netIface = os.networkInterfaces(),
+  eth = netIface.eth0 || netIface.eth1,
+  localIp = eth[0].address;
 
 
 //init the clipstack of a device based on device-discovery service
 function maintainClipStack() {
-  //init clipstack...
   if (clipstack === undefined) {
     clipstack = [];
     clipstack.push(localIp);
-    // device.showDeviceList(function(ddd){
-    //  console.log("Init clipstack...");
-    //  for (dev in ddd ) {
-    //    clipstack.push(ddd[dev].address);
-    //  }
-    // });
   }
-
+  console.log("======This is in maintainClipStack======");
   //update the clipstack when there is a device online or offline.
-  // device.addListener(function(_para){
-  //  if(_para !== 'object') return console.log(_para);
-  //  var _info = _para.info,
-  //      _dev_ip = _info.address; 
-  //  switch(_para.flag){
-  //    case 'up':
-  //      if(_dev_ip in clipstack) 
-  //        break;
-  //      else clipstack.unshift(_dev_ip);
-  //      break;
-  //    case 'down':
-  //      var id = clipstack.indexOf(_dev_ip);
-  //      if(id == -1)
-  //        throw new Error("Warn: this device is not in the clipstack.");
-  //      else
-  //        clipstack.splice(id,1);
-  //      break;
-  //    default :
-  //      break;
-  //  }
-  // });
+  device.addListener(function(_para) {
+    console.log("Listener has been added successfully!");
+    if (_para !== 'object') return console.log(_para);
+    var _info = _para.info,
+      _dev_ip = _info.address;
+      id = clipstack.indexOf(_dev_ip);
+    switch (_para.flag) {
+      case 'up':
+        if (id !== -1)
+          break;
+        else clipstack.unshift(_dev_ip);
+        break;
+      case 'down':
+        if (id == -1)
+          throw new Error("INFO: This device is not in the clipstack.");
+        else
+          clipstack.splice(id, 1);
+        break;
+      default:
+        break;
+    }
+  });
 }
 
 //this function's fearure is to get the current 
@@ -124,7 +117,7 @@ function broadcast() {
  */
 function updateClipStack(msg, clipstack, callback) {
   var _ip = msg.ip;
-  // data structure of the clip stack needed to be initial before doing the following action
+  // data structure of the clipstack needed to be initiated before doing the following action
   var _clipstack = clipstack;
   var _count = 0;
 
@@ -152,6 +145,7 @@ function updateClipStack(msg, clipstack, callback) {
 //function to get the top element of the clipstack
 
 function getClipData() {
+  console.log("clipstack: " + JSON.stringify(clipstack));
   return clipstack[clipstack.length - 1];
 }
 
@@ -189,24 +183,46 @@ exports.paste = function(callback) {
   if (_ip == _localIp) {
     getClipboardData(function(ret) {
       console.log("--------local paste test--------");
-      console.log("ret: " + ret);
-      if (ret === null) ret = "";
-      callback(null, ret);
+      console.log("local ret: " + ret);
+      var err = "Target value is null!";
+      if (ret === null) { 
+        callback(err);
+      } else {
+        callback(null, ret, "");
+      }
     });
   } else {
     //remotePaste procedue
     var _remoteProxy = remoteProxy.getProxy(_ip);
-    _remoteProxy.paste(function(result) {
+    _remoteProxy.paste(function(ret) {
       console.log("--------remote paste test--------");
-      if (result === null) result = "";
-      console.log("result: " + result);
-      callback(null, result);
+      if (ret === null) {
+        callback(err)
+      } else {
+        console.log("remote ret: " + ret.ret);
+        callback(null, ret.ret, _ip);
+      }
+      
     });
   }
 };
 
 (function main() {
+
   maintainClipStack();
+  device.startMdnsService(function(state) {
+    if (state === true) {
+      console.log('start MDNS service successful!');
+      //init clipstack...
+      device.showDeviceList(function(ddd) {
+        console.log("Init clipstack...");
+        console.log("ddd " + JSON.stringify(ddd));
+        for (dev in ddd) {
+          clipstack.push(ddd[dev].address);
+        }
+      });
+    };
+  });
   im.startReciver("cpReciver", function(content) {
     console.log(content);
     var _msg = content;
