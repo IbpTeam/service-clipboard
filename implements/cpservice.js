@@ -15,8 +15,8 @@ var clipstack = undefined,
 //init the clipstack of a device based on device-discovery service
 function maintainClipStack() {
   if (clipstack === undefined) {
-    clipstack = [];
-    clipstack.push(localIp);
+    clipstack = ["192.168.162.122","192.168.160.56"];
+    //clipstack.push("192.168.160.56");
   }
   console.log("======This is in maintainClipStack======");
   //update the clipstack when there is a device online or offline.
@@ -71,15 +71,15 @@ function isClipboardUpdated(string, callback) {
     if (string === _clipContent) {
       console.log("clipboard's content is not changed.");
       if (localIp != getClipData)
-        broadcast();
+        // broadcast();
       flag = false;
       callback(flag);
     } else {
-      //broadcast clipboard updated mesage to device in the AdHoc.
-      broadcast();
+      //broadcast clipboard updated mesage to device in the AdHoc.    
       flag = true;
       callback(flag);
     }
+    // broadcast();
   });
 }
 
@@ -89,7 +89,7 @@ function isClipboardUpdated(string, callback) {
 function broadcast() {
   var msg = {};
   msg.ip = localIp;
-  msg.txt = "content of " + msg.ip + "'s clipboard is updated!";
+  msg.txt = "State of " + msg.ip + "'s clipboard is updated!";
   //inform other device in the AdHoc that the content of system clipboard has been updated
   for (var i = 0; i < clipstack.length; i++) {
     var _ip = clipstack[i];
@@ -97,9 +97,9 @@ function broadcast() {
       updateClipStack(msg, clipstack);
       continue;
     } else {
-      var intent = im.Intent("cpIntent", msg);
+      var intent = new  im.Intent("cpIntent", msg);
       intent.send("cpReciver", _ip);
-      console.log("message is sent...");
+      console.log("message is sent to "+ _ip + "...");
     }
   };
   console.log("msg: " + JSON.stringify(msg));
@@ -119,6 +119,7 @@ function updateClipStack(msg, clipstack, callback) {
   var _ip = msg.ip;
   // data structure of the clipstack needed to be initiated before doing the following action
   var _clipstack = clipstack;
+  console.log("clipstack : "+clipstack);
   var _count = 0;
 
   //if msg.ip is already stored in the clipstack,do like this
@@ -161,6 +162,7 @@ exports.setStub = function(stub_) {
 //para @callback: callback to handle some info
 //
 exports.copy = function(string, callback) {
+  broadcast();
   isClipboardUpdated(string, function(flag) {
     if (flag == true) {
       console.log("--------call node-copy-paste's copy()------");
@@ -227,5 +229,6 @@ exports.paste = function(callback) {
     console.log(content);
     var _msg = content;
     updateClipStack(_msg, clipstack);
+    console.log("update clipstack : "+clipstack);
   });
 })();
