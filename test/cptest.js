@@ -1,6 +1,6 @@
 var cpService = require("../../../service/clipboard/interface/clipboardProxy").getProxy();
 
-var data = "this a test of clipboard.";
+var data = "text:this a test of clipboard.";
 cpService.copy(data, function(ret) {
   if (!ret.err) {
     console.log("--------copy test--------");
