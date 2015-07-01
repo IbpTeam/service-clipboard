@@ -15,7 +15,7 @@ var clipstack = undefined,
 //init the clipstack of a device based on device-discovery service
 function maintainClipStack() {
   if (clipstack === undefined) {
-    clipstack = ["192.168.162.122","192.168.160.56"];
+    clipstack = ["192.168.162.122", "192.168.160.56"];
     //clipstack.push("192.168.160.56");
   }
   console.log("======This is in maintainClipStack======");
@@ -25,7 +25,7 @@ function maintainClipStack() {
     if (_para !== 'object') return console.log(_para);
     var _info = _para.info,
       _dev_ip = _info.address;
-      id = clipstack.indexOf(_dev_ip);
+    id = clipstack.indexOf(_dev_ip);
     switch (_para.flag) {
       case 'up':
         if (id !== -1)
@@ -71,8 +71,8 @@ function isClipboardUpdated(string, callback) {
     if (string === _clipContent) {
       console.log("clipboard's content is not changed.");
       if (localIp != getClipData)
-        // broadcast();
-      flag = false;
+      // broadcast();
+        flag = false;
       callback(flag);
     } else {
       //broadcast clipboard updated mesage to device in the AdHoc.    
@@ -85,10 +85,17 @@ function isClipboardUpdated(string, callback) {
 
 /* @method broadcast()
  *   to broadcast clipboard update message to device in the AdHoc
+ * para @msg:Object,
+ *      {ip: string,e.g:127.0.0.1
+ *       value:string,
+ *          e.g:value of text:"text:this is a test"
+ *              value of path:"path:/home/zk/file.txt"
+ *       txt: string }
  */
-function broadcast() {
+function broadcast(string) {
   var msg = {};
   msg.ip = localIp;
+  msg.value = string;
   msg.txt = "State of " + msg.ip + "'s clipboard is updated!";
   //inform other device in the AdHoc that the content of system clipboard has been updated
   for (var i = 0; i < clipstack.length; i++) {
@@ -97,16 +104,17 @@ function broadcast() {
       updateClipStack(msg, clipstack);
       continue;
     } else {
-      var intent = new  im.Intent("cpIntent", msg);
+      var intent = new im.Intent("cpIntent", msg);
       intent.send("cpReciver", _ip);
-      console.log("message is sent to "+ _ip + "...");
+      console.log("message is sent to " + _ip + "...");
     }
   };
   console.log("msg: " + JSON.stringify(msg));
 }
 
 /* para @msg:Object,
- *      {ip: string,
+ *      {ip: string,e.g:127.0.0.1
+ *      content:string,
  *       txt: string }
  * para @clipstack:Array,
  *   [ ip:string,
@@ -119,7 +127,7 @@ function updateClipStack(msg, clipstack, callback) {
   var _ip = msg.ip;
   // data structure of the clipstack needed to be initiated before doing the following action
   var _clipstack = clipstack;
-  console.log("clipstack : "+clipstack);
+  console.log("clipstack : " + clipstack);
   var _count = 0;
 
   //if msg.ip is already stored in the clipstack,do like this
@@ -162,8 +170,11 @@ exports.setStub = function(stub_) {
 //para @callback: callback to handle some info
 //
 exports.copy = function(string, callback) {
-  broadcast();
-  isClipboardUpdated(string, function(flag) {
+  broadcast(string);
+  console.log("original sting: " + string);
+  var str = string.substring(5)
+  console.log("new str: " + str);
+  isClipboardUpdated(str, function(flag) {
     if (flag == true) {
       console.log("--------call node-copy-paste's copy()------");
       console.log("string::: " + string);
@@ -187,7 +198,7 @@ exports.paste = function(callback) {
       console.log("--------local paste test--------");
       console.log("local ret: " + ret);
       var err = "Target value is null!";
-      if (ret === null) { 
+      if (ret === null) {
         callback(err);
       } else {
         callback(null, ret, "");
@@ -204,7 +215,7 @@ exports.paste = function(callback) {
         console.log("remote ret: " + ret.ret);
         callback(null, ret.ret, _ip);
       }
-      
+
     });
   }
 };
@@ -229,6 +240,8 @@ exports.paste = function(callback) {
     console.log(content);
     var _msg = content;
     updateClipStack(_msg, clipstack);
-    console.log("update clipstack : "+clipstack);
+    if (_msg.value.indexOf("text:") == 0)
+      copypaste.copy(_msg.value.substring(5));
+    console.log("update clipstack : " + clipstack);
   });
 })();
