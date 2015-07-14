@@ -15,24 +15,25 @@ var clipstack = undefined,
 //init the clipstack of a device based on device-discovery service
 function maintainClipStack() {
   if (clipstack === undefined) {
-    clipstack = ["192.168.162.122", "192.168.160.56"];
-    //clipstack.push("192.168.160.56");
+    // clipstack = ["192.168.162.122", "192.168.160.56"];
+    clipstack = [localIp];
   }
   console.log("======This is in maintainClipStack======");
-  //update the clipstack when there is a device online or offline.
+  // update the clipstack when there is a device online or offline.
   device.addListener(function(_para) {
-    console.log("Listener has been added successfully!");
-    if (_para !== 'object') return console.log(_para);
+    if (typeof _para !== 'object') return console.log(_para);
     var _info = _para.info,
       _dev_ip = _info.address;
     id = clipstack.indexOf(_dev_ip);
     switch (_para.flag) {
       case 'up':
+        console.log('Device Up');
         if (id !== -1)
           break;
         else clipstack.unshift(_dev_ip);
         break;
       case 'down':
+        console.log('Device Down');
         if (id == -1)
           throw new Error("INFO: This device is not in the clipstack.");
         else
@@ -41,6 +42,7 @@ function maintainClipStack() {
       default:
         break;
     }
+    console.log('clipboard stack:', clipstack);
   });
 }
 
@@ -236,12 +238,12 @@ exports.paste = function(callback) {
       });
     };
   });
-  im.startReciver("cpReciver", function(content) {
+  im.startReciver("cpReciver", function(content) { 
     console.log(content);
     var _msg = content;
     updateClipStack(_msg, clipstack);
     if (_msg.value.indexOf("text:") == 0)
       copypaste.copy(_msg.value.substring(5));
     console.log("update clipstack : " + clipstack);
-  });
+  }); 
 })();
