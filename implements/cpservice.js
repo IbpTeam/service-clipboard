@@ -179,7 +179,6 @@ exports.copy = function(string, callback) {
   isClipboardUpdated(str, function(flag) {
     if (flag == true) {
       console.log("--------call node-copy-paste's copy()------");
-      console.log("string::: " + string);
       copypaste.copy(string);
       callback(null);
     } else {
@@ -211,8 +210,8 @@ exports.paste = function(callback) {
     var _remoteProxy = remoteProxy.getProxy(_ip);
     _remoteProxy.paste(function(ret) {
       console.log("--------remote paste test--------");
-      if (ret === null) {
-        callback(err)
+      if (ret.err) {
+        callback(ret.err);
       } else {
         console.log("remote ret: " + ret.ret);
         callback(null, ret.ret, _ip);
@@ -228,14 +227,6 @@ exports.paste = function(callback) {
   device.startMdnsService(function(state) {
     if (state === true) {
       console.log('start MDNS service successful!');
-      //init clipstack...
-      device.showDeviceList(function(ddd) {
-        console.log("Init clipstack...");
-        console.log("ddd " + JSON.stringify(ddd));
-        for (dev in ddd) {
-          clipstack.push(ddd[dev].address);
-        }
-      });
     };
   });
   im.startReciver("cpReciver", function(content) { 
