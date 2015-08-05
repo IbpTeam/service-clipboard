@@ -8,7 +8,7 @@ var copypaste = require("copy-paste"),
 
 var clipstack = undefined,
   netIface = os.networkInterfaces(),
-  eth = netIface.eth0 || netIface.eth1,
+  eth = netIface.eth0 || netIface.eth1|| netIface.wlan0,
   localIp = eth[0].address;
 
 
