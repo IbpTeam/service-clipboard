@@ -3,8 +3,9 @@ var copypaste = require("copy-paste"),
   api = require("api"),
   im = api.im(),
   device = api.devDetect(),
-  remoteProxy = require("../interface/clipboardProxyRemote");
+  remoteProxy = require("../interface/proxyremote");
 
+console.log('begin!!!');
 
 var clipstack = undefined,
   netIface = os.networkInterfaces(),
@@ -229,6 +230,7 @@ exports.paste = function(callback) {
       console.log('start MDNS service successful!');
     };
   });
+  console.log('main!!!');
   im.startReciver("cpReciver", function(content) { 
     console.log(content);
     var _msg = content;

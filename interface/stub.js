@@ -9,15 +9,18 @@ var initObj = {
   "name": "nodejs.webde.clipboard",
   "type": "dbus",
   "service": true,
-  "interface": [{
-    "name": "copy",
-    "in": [
-      "String"
-    ]
-  }, {
-    "name": "paste",
-    "in": []
-  }],
+  "interface": [
+    {
+      "name": "copy",
+      "in": [
+        "String"
+      ]
+    },
+    {
+      "name": "paste",
+      "in": []
+    }
+  ],
   "serviceObj": {
     copy: function(String, callback) {
       clipboard.copy(String, function(err) {
@@ -47,7 +50,6 @@ var initObj = {
 }
 
 function Stub() {
-  // TODO: please replace $IPC with the real path of webde-rpc module in your project
   this._ipc = require('webde-rpc').getIPC(initObj);
 }
 
@@ -56,19 +58,9 @@ Stub.prototype.notify = function(event) {
 };
 
 var stub = null,
-  cd = null,
-  proxyAddr = null;
-exports.getStub = function(proxyAddr, clipboard_) {
-  if (stub == null) {
-    if (typeof proxyAddr === 'undefined')
-      throw 'The path of proxy\'s module file we need!';
-    // TODO: replace $cdProxy to the path of commdaemonProxy
-    cd = require('../node_modules/commdaemon/interface/commdaemonProxy').getProxy();
-    cd.register(initObj.name, proxyAddr, function(ret) {
-      if (ret.err) {
-        return console.log(ret.err, 'This service cannot be accessed from other devices since failed to register on CD');
-      }
-    });
+    clipboard = null;
+exports.getStub = function(clipboard_) {
+  if(stub == null) {
     stub = new Stub();
     clipboard = clipboard_;
   }

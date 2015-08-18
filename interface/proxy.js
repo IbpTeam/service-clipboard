@@ -3,17 +3,38 @@
 // TODO: please replace types with peramters' name you wanted of any functions
 // TODO: please replace $ipcType with one of dbus, binder, websocket and socket
 
-function Proxy(ip) {
-  if (typeof ip !== 'undefined') {
-    this.ip = ip;
-  } else {
-    return console.log('The remote IP is required');
-  }
+var initObj = {
+  "address": "nodejs.webde.clipboard",
+  "path": "/nodejs/webde/clipboard",
+  "name": "nodejs.webde.clipboard",
+  "type": "dbus",
+  "service": false
+}
 
-  // TODO: replace $cdProxy to the real path
-  this._cd = require('../node_modules/commdaemon/interface/commdaemonProxy').getProxy();
+function Proxy() {
+  this._ipc = require('webde-rpc').getIPC(initObj);
   this._token = 0;
 
+  // TODO: choose to implement interfaces of ipc
+  /* handle message send from service
+  this._ipc.onMsg = function(msg) {
+    // TODO: your handler
+  }*/
+
+  /* handle the event emitted when connected succeffuly
+  this._ipc.onConnect = function() {
+    // TODO: your handler
+  }*/
+
+  /* handle the event emitted when connection has been closed
+  this._ipc.onClose = function() {
+    // TODO: your handler
+  }*/
+
+  /* handle the event emitted when error occured
+  this._ipc.onError = function(err) {
+    // TODO: your handler
+  }*/
 }
 
 /**
@@ -26,14 +47,13 @@ function Proxy(ip) {
  */
 Proxy.prototype.copy = function(String, callback) {
   var l = arguments.length,
-    args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
-  var argv = {
-    action: 0,
-    svr: 'nodejs.webde.clipboard',
-    func: 'copy',
-    args: args
-  };
-  this._cd.send(this.ip, argv, callback);
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'copy',
+    in: args,
+    callback: callback
+  });
 };
 
 /**
@@ -46,14 +66,13 @@ Proxy.prototype.copy = function(String, callback) {
  */
 Proxy.prototype.paste = function(callback) {
   var l = arguments.length,
-    args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
-  var argv = {
-    action: 0,
-    svr: 'nodejs.webde.clipboard',
-    func: 'paste',
-    args: args
-  };
-  this._cd.send(this.ip, argv, callback);
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'paste',
+    in: args,
+    callback: callback
+  });
 };
 
 /**
@@ -70,14 +89,8 @@ Proxy.prototype.paste = function(callback) {
  *    itself of this instance
  */
 Proxy.prototype.on = function(event, handler) {
-  this._cd.on(event, handler);
-  var argvs = {
-    'action': 0,
-    'svr': 'nodejs.webde.clipboard',
-    'func': 'on',
-    'args': [event]
-  };
-  this._cd.send(this.ip, argvs);
+  this._ipc.on(event, handler);
+  return this;
 };
 
 /**
@@ -94,20 +107,14 @@ Proxy.prototype.on = function(event, handler) {
  *    itself of this instance
  */
 Proxy.prototype.off = function(event, handler) {
-  this._cd.off(event, handler);
-  var argvs = {
-    'action': 0,
-    'svr': 'nodejs.webde.clipboard',
-    'func': 'off',
-    'args': [event]
-  };
-  this._cd.send(this.ip, argvs);
+  this._ipc.removeListener(event, handler);
+  return this;
 };
 
 var proxy = null;
-exports.getProxy = function(ip) {
-  if (proxy == null) {
-    proxy = new Proxy(ip);
+exports.getProxy = function() {
+  if(proxy == null) {
+    proxy = new Proxy();
   }
   return proxy;
 };
